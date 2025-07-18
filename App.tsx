@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from './src/screens/HomeScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import BreathVisualizer from './src/components/BreathVisualizer'
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 // import Ionicons from '@expo/vector-icons';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -12,6 +13,15 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 
 import HeaderSettingsButton from './src/components/HeaderSettingsButton.tsx';
+// import BreathGraphEditor from './src/components/BreathGraphEditor';
+// import ConfigurationPanel from './src/components/ConfigurationPanel';
+// import ControlButtons from './src/components/ControlButtons';
+// import PhaseTimeEditor from './src/components/PhaseTimeEditor';
+// import PresetSelector from './src/components/PresetSelector';
+// import ProgressIndicators from './src/components/ProgressIndicators';
+// import StepperInput from './src/components/StepperInput';
+// import TimerDisplay from './src/components/TimerDisplay';
+import ConfigurationScreen from './src/screens/SettingsScreen';
 
 const Stack = createStackNavigator();
 
@@ -24,6 +34,22 @@ const SettingsButton = ({ navigation }: { navigation: any }) => (
   </TouchableOpacity>
 );
 
+const renderHeaderRight = (navigation: any) => (
+  <HeaderSettingsButton onPress={() => navigation.navigate('Settings')} />
+);
+
+// Wrapper for BreathVisualizer
+const BreathVisualizerScreen = ({ route }: { route: any }) => {
+  const { currentPhase, progress } = route.params || { currentPhase: 'Inhale', progress: 1 };
+  return <BreathVisualizer currentPhase={currentPhase} progress={progress} />;
+};
+
+// Wrapper for HeaderSettingsButton
+const HeaderSettingsButtonScreen = ({ route, navigation }: { route: any, navigation: any }) => {
+  const { onPress } = route.params || {};
+  return <HeaderSettingsButton onPress={onPress || (() => navigation.navigate('Settings'))} />;
+};
+
 export default function App() {
   return (
     <GestureHandlerRootView style={styles.gestureContainer}>
@@ -33,16 +59,22 @@ export default function App() {
             name="Home"
             component={HomeScreen}
             options={({ navigation }) => ({
-              headerRight: () => (
-                <HeaderSettingsButton onPress={() => navigation.navigate('Settings')} />
-              ),
+              headerRight: () => renderHeaderRight(navigation),
             })}
           />
           <Stack.Screen
             name="Settings"
-            component={SettingsScreen}
-            options={{ title: 'App Settings' }}
+            component={ConfigurationScreen}
+            options={{ title: 'Configure Session' }}
           />
+          {/* <Stack.Screen name="BreathVisualizer" component={BreathVisualizerScreen} />
+          <Stack.Screen name="BreathGraphEditor" component={BreathGraphEditor} />
+          <Stack.Screen name="ConfigurationPanel" component={ConfigurationPanel} />
+          <Stack.Screen name="ControlButtons" component={ControlButtons} />
+          <Stack.Screen name="PhaseTimeEditor" component={PhaseTimeEditor} />
+          <Stack.Screen name="PresetSelector" component={PresetSelector} />
+          <Stack.Screen name="ProgressIndicators" component={ProgressIndicators} />
+          <Stack.Screen name="HeaderSettingsButton" component={HeaderSettingsButtonScreen} /> */}
         </Stack.Navigator>
       </NavigationContainer>
     </GestureHandlerRootView>

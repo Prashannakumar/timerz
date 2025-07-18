@@ -2,8 +2,13 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { COLORS, PRESET_PATTERNS } from '../../constants';
 import { useTimerStore } from '../../store/useTimerStore';
+import type { Phase } from '../../store/useTimerStore';
 
-const PresetSelector = () => {
+interface PresetSelectorProps {
+  onSelect?: (phases: Phase[]) => void;
+}
+
+const PresetSelector: React.FC<PresetSelectorProps> = ({ onSelect }) => {
   const { updatePattern } = useTimerStore();
 
   return (
@@ -14,7 +19,7 @@ const PresetSelector = () => {
           <TouchableOpacity
             key={preset.id}
             style={styles.presetButton}
-            onPress={() => updatePattern(preset.phases)}
+            onPress={() => onSelect ? onSelect(preset.phases) : updatePattern(preset.phases)}
           >
             <Text style={styles.presetText}>{preset.name}</Text>
           </TouchableOpacity>

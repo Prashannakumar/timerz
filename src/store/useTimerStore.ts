@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-interface Phase {
+export interface Phase {
   name: string;
   duration: number;
 }

@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Path, Circle, G, Text as SvgText } from 'react-native-svg';
 import { PanGestureHandler } from 'react-native-gesture-handler';
-import Animated, { useAnimatedGestureHandler, useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
+import Animated, { useAnimatedGestureHandler, useSharedValue, useAnimatedStyle, runOnJS } from 'react-native-reanimated';
 import { COLORS } from '../../constants';
 import { useTimerStore } from '../../store/useTimerStore';
 
@@ -23,15 +23,19 @@ const BreathGraphEditor = () => {
     return [...acc, { x, y, duration: phase.duration }];
   }, [] as {x: number, y: number, duration: number}[]);
 
-  const onPointDrag = (index: number) => {
-    return useAnimatedGestureHandler({
-      onActive: (event) => {
+  // Single gesture handler for all points
+  const onPointDrag = useAnimatedGestureHandler({
+    onStart: (event, context) => {
+      context.index = event.index;
+    },
+    onActive: (event, context) => {
+      if (typeof context.index === 'number') {
         const newY = Math.max(0, Math.min(GRAPH_HEIGHT, event.y));
         const newDuration = Math.round(30 - (newY / GRAPH_HEIGHT) * 30);
-        updatePhaseDuration(index, newDuration);
-      },
-    });
-  };
+        runOnJS(updatePhaseDuration)(context.index, newDuration);
+      }
+    },
+  });
 
   return (
     <View style={styles.container}>
@@ -58,7 +62,18 @@ const BreathGraphEditor = () => {
         
         {/* Control points */}
         {points.map((point, index) => (
-          <PanGestureHandler key={index} onGestureEvent={onPointDrag(index)}>
+          <PanGestureHandler
+            key={index}
+            onGestureEvent={onPointDrag}
+            // Pass the index to the gesture context
+            shouldCancelWhenOutside={false}
+            hitSlop={20}
+            // @ts-ignore
+            simultaneousHandlers={[]}
+            // Custom prop for context
+            // @ts-ignore
+            index={index}
+          >
             <AnimatedCircle
               cx={point.x}
               cy={point.y}
