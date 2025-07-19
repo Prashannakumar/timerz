@@ -14,7 +14,7 @@ const ProgressIndicators = () => {
           <View style={styles.progressBar}>
             <View 
               style={[
-                styles.progressFill, 
+                styles.progressFillCycle, 
                 { width: `${(currentCycle / cycles) * 100}%` }
               ]} 
             />
@@ -25,7 +25,7 @@ const ProgressIndicators = () => {
           <View style={styles.progressBar}>
             <View 
               style={[
-                styles.progressFill, 
+                styles.progressFillSet, 
                 { width: `${(currentSet / sets) * 100}%` }
               ]} 
             />
@@ -56,17 +56,22 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   progressBar: {
-    height: 10,
-    backgroundColor: COLORS.inactive,
-    borderRadius: 5,
+    height: 14,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 7,
     overflow: 'hidden',
     width: '150%',
     alignSelf: 'center',
   },
-  progressFill: {
+  progressFillCycle: {
     height: '100%',
-    backgroundColor: COLORS.primary,
-    borderRadius: 5,
+    backgroundColor: '#4CAF50',
+    borderRadius: 7,
+  },
+  progressFillSet: {
+    height: '100%',
+    backgroundColor: '#7C4DFF',
+    borderRadius: 7,
   },
 });
 

@@ -15,6 +15,12 @@ const FEATURES = [
     icon: 'timer-outline',
     color: '#2196F3',
   },
+  {
+    key: 'countdown-timer',
+    label: 'Countdown Timer',
+    icon: 'time-outline',
+    color: '#FF7043',
+  },
 ];
 
 export default function Dashboard({ onSelectFeature }: { onSelectFeature: (feature: string) => void }) {

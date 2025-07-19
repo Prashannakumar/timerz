@@ -88,51 +88,48 @@ export default function Stopwatch({ onBack }: { onBack: () => void }) {
 
   return (
     <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={{ flex: 1 }}>
-      {/* Header Row with Home Icon and Title */}
+      {/* Header Row at the very top */}
       <View style={styles.headerRow}>
         <TouchableOpacity style={styles.headerHomeIcon} onPress={onBack}>
           <Icon name="home" size={28} color="#333" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Stopwatch</Text>
       </View>
-      {/* Animated Stopwatch Icon */}
-      <View style={styles.iconContainer}>
-        <Animated.View style={[iconAnimatedStyle, styles.iconGlow]}>
-          <Icon name="timer-outline" size={64} color="#7C4DFF" />
-        </Animated.View>
-      </View>
-      {/* Glassmorphism Card for Stopwatch Display */}
-      <View style={styles.glassCard}>
-        <Animated.Text style={[styles.time]}>{formatTime(elapsed)}</Animated.Text>
-      </View>
-      {/* Controls */}
-      <View style={styles.controls}>
-        <Pressable
-          style={({ pressed }) => [styles.controlButton, running && styles.disabledButton, pressed && styles.buttonPressed]}
-          onPress={start}
-          disabled={running}
-        >
-          <LinearGradient colors={buttonGradient} style={styles.buttonGradient}>
+      {/* Main content with top margin to avoid overlap */}
+      <View style={styles.mainContent}>
+        {/* Animated Stopwatch Icon */}
+        <View style={styles.iconContainer}>
+          <Animated.View style={[iconAnimatedStyle, styles.iconGlow]}>
+            <Icon name="timer-outline" size={60} color="#3a5fc8" />
+          </Animated.View>
+        </View>
+        {/* Glassmorphism Card for Stopwatch Display */}
+        <View style={styles.displayCard}>
+          <Animated.Text style={[styles.time]}>{formatTime(elapsed)}</Animated.Text>
+        </View>
+        {/* Controls */}
+        <View style={styles.controls}>
+          <Pressable
+            style={({ pressed }) => [styles.controlButton, running && styles.disabledButton, pressed && styles.buttonPressed]}
+            onPress={start}
+            disabled={running}
+          >
             <Text style={styles.controlText}>Start</Text>
-          </LinearGradient>
-        </Pressable>
-        <Pressable
-          style={({ pressed }) => [styles.controlButton, !running && styles.disabledButton, pressed && styles.buttonPressed]}
-          onPress={stop}
-          disabled={!running}
-        >
-          <LinearGradient colors={buttonGradient} style={styles.buttonGradient}>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.controlButton, !running && styles.disabledButton, pressed && styles.buttonPressed]}
+            onPress={stop}
+            disabled={!running}
+          >
             <Text style={styles.controlText}>Stop</Text>
-          </LinearGradient>
-        </Pressable>
-        <Pressable
-          style={({ pressed }) => [styles.controlButton, pressed && styles.buttonPressed]}
-          onPress={reset}
-        >
-          <LinearGradient colors={buttonGradient} style={styles.buttonGradient}>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.controlButton, pressed && styles.buttonPressed]}
+            onPress={reset}
+          >
             <Text style={styles.controlText}>Reset</Text>
-          </LinearGradient>
-        </Pressable>
+          </Pressable>
+        </View>
       </View>
     </LinearGradient>
   );
@@ -142,11 +139,15 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 30,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    paddingTop: 36,
     paddingHorizontal: 16,
-    marginBottom: 4,
-    position: 'relative',
-    minHeight: 48,
+    minHeight: 52,
+    backgroundColor: 'transparent',
   },
   headerHomeIcon: {
     padding: 8,
@@ -162,19 +163,27 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: 'bold',
     color: '#3a5fc8',
     marginRight: 40,
+    letterSpacing: 1.1,
+  },
+  mainContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    marginTop: 90, // enough to clear the header
   },
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 32,
-    marginBottom: 8,
+    marginTop: 10,
+    marginBottom: 18,
   },
   iconGlow: {
-    shadowColor: '#7C4DFF',
+    shadowColor: '#3a5fc8',
     shadowOffset: { width: 0, height: 0 },
     shadowRadius: 18,
     shadowOpacity: 0.7,
@@ -183,51 +192,49 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(124,77,255,0.08)',
     padding: 12,
   },
-  glassCard: {
-    marginHorizontal: 32,
+  displayCard: {
     marginVertical: 18,
-    borderRadius: 32,
+    borderRadius: 24,
     backgroundColor: 'rgba(255,255,255,0.35)',
     borderWidth: 1.5,
     borderColor: 'rgba(124,77,255,0.18)',
-    paddingVertical: 28,
+    paddingVertical: 18,
+    paddingHorizontal: 32,
     alignItems: 'center',
     shadowColor: '#7C4DFF',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.12,
     shadowRadius: 24,
     elevation: 8,
+    minWidth: 220,
   },
   time: {
-    fontSize: 56,
+    fontSize: 48,
     fontWeight: 'bold',
     color: '#3a5fc8',
     letterSpacing: 2,
     fontVariant: ['tabular-nums'],
+    textAlign: 'center',
   },
   controls: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingBottom: 40,
-    marginTop: 18,
+    justifyContent: 'center',
+    marginTop: 28,
+    marginBottom: 8,
   },
   controlButton: {
-    borderRadius: 16,
-    marginHorizontal: 8,
+    backgroundColor: '#3a5fc8',
+    borderRadius: 14,
+    marginHorizontal: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    minWidth: 90,
+    alignItems: 'center',
     shadowColor: '#7C4DFF',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 8,
     elevation: 2,
-    overflow: 'hidden',
-    minWidth: 90,
-  },
-  buttonGradient: {
-    paddingVertical: 14,
-    paddingHorizontal: 0,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   buttonPressed: {
     opacity: 0.7,
@@ -239,7 +246,7 @@ const styles = StyleSheet.create({
   controlText: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     letterSpacing: 1,
   },
 }); 

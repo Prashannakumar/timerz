@@ -178,7 +178,7 @@ const HomeScreen = ({ navigation, onConfigureSession, onHome }: { navigation?: H
   const presetName = chosenPreset ? chosenPreset.name : 'Custom';
 
   return (
-    <LinearGradient colors={['#e0c3fc', '#8ec5fc']} style={{ flex: 1 }}>
+    <LinearGradient colors={['#e0eafc', '#cfdef3']} style={{ flex: 1 }}>
       {/* Floating Home Icon */}
       {onHome && (
         <TouchableOpacity style={styles.floatingHomeIcon} onPress={onHome}>
