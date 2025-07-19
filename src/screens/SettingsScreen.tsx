@@ -8,13 +8,21 @@ import StepperInput from '../components/StepperInput';
 import { useTimerStore } from '../store/useTimerStore';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const ConfigurationScreen = () => {
+const ConfigurationScreen = ({ onBack }: { onBack?: () => void }) => {
   const { pattern, cycles, sets, relaxTime, updateSettings, updatePattern } = useTimerStore();
   const [inputMode, setInputMode] = useState<'graph' | 'numbers'>('graph');
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-      <Text style={styles.header}>Configure Breath Session</Text>
+      {/* Header Row with Back Icon and Title */}
+      <View style={styles.headerRow}>
+        {onBack && (
+          <TouchableOpacity style={styles.headerBackIcon} onPress={onBack}>
+            <Icon name="arrow-back" size={28} color="#333" />
+          </TouchableOpacity>
+        )}
+        <Text style={styles.headerTitle}>Configure Breath Session</Text>
+      </View>
       <PresetSelector onSelect={updatePattern} />
       <View style={styles.toggleRow}>
         <TouchableOpacity
@@ -131,6 +139,41 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
+  backButton: {
+    marginTop: 16,
+    marginBottom: 8,
+    marginLeft: 0,
+    alignSelf: 'flex-start',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 30,
+    paddingHorizontal: 16,
+    marginBottom: 4,
+    position: 'relative',
+    minHeight: 48,
+  },
+  headerBackIcon: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 6,
+    marginRight: 8,
+  },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#5f4b8b',
+    marginRight: 40, // to visually center the text when icon is present
+  },
 });
 
 export default ConfigurationScreen;
+export { ConfigurationScreen as SettingsScreen };

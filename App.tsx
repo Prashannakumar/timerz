@@ -1,74 +1,39 @@
-import 'react-native-gesture-handler';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import HomeScreen from './src/screens/HomeScreen';
-import SettingsScreen from './src/screens/SettingsScreen';
-import BreathVisualizer from './src/components/BreathVisualizer'
+import React, { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-// import Ionicons from '@expo/vector-icons';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { TouchableOpacity } from 'react-native';
-import { COLORS } from './src/constants';
-import React from 'react';
-import { StyleSheet } from 'react-native';
-
-import HeaderSettingsButton from './src/components/HeaderSettingsButton.tsx';
-// import BreathGraphEditor from './src/components/BreathGraphEditor';
-// import ConfigurationPanel from './src/components/ConfigurationPanel';
-// import ControlButtons from './src/components/ControlButtons';
-// import PhaseTimeEditor from './src/components/PhaseTimeEditor';
-// import PresetSelector from './src/components/PresetSelector';
-// import ProgressIndicators from './src/components/ProgressIndicators';
-// import StepperInput from './src/components/StepperInput';
-// import TimerDisplay from './src/components/TimerDisplay';
-import ConfigurationScreen from './src/screens/SettingsScreen';
-
-const Stack = createStackNavigator();
-
-const SettingsButton = ({ navigation }: { navigation: any }) => (
-  <TouchableOpacity
-    onPress={() => navigation.navigate('Settings')}
-    style={styles.settingsButton}
-  >
-    <Icon name="settings" size={24} color={COLORS.text} />
-  </TouchableOpacity>
-);
-
-const renderHeaderRight = (navigation: any) => (
-  <HeaderSettingsButton onPress={() => navigation.navigate('Settings')} />
-);
-
-// Wrapper for BreathVisualizer
-const BreathVisualizerScreen = ({ route }: { route: any }) => {
-  const { currentPhase, progress } = route.params || { currentPhase: 'Inhale', progress: 1 };
-  return <BreathVisualizer currentPhase={currentPhase} progress={progress} />;
-};
-
-// Wrapper for HeaderSettingsButton
-const HeaderSettingsButtonScreen = ({ route, navigation }: { route: any, navigation: any }) => {
-  const { onPress } = route.params || {};
-  return <HeaderSettingsButton onPress={onPress || (() => navigation.navigate('Settings'))} />;
-};
+import Dashboard from './src/components/Dashboard';
+import HomeScreen from './src/screens/HomeScreen';
+import Stopwatch from './src/components/Stopwatch';
+import SettingsScreen from './src/screens/SettingsScreen';
 
 export default function App() {
+  const [screen, setScreen] = useState<'dashboard' | 'yoga-breath-timer' | 'stopwatch' | 'yoga-breath-settings'>('dashboard');
+
+  // Handler for Dashboard card selection
+  const handleSelectFeature = (feature: string) => {
+    if (feature === 'yoga-breath-timer') setScreen('yoga-breath-timer');
+    else if (feature === 'stopwatch') setScreen('stopwatch');
+  };
+
+  // Handler to go back to dashboard
+  const goHome = () => setScreen('dashboard');
+
+  // Handler for Yoga Breath Timer settings
+  const goToYogaSettings = () => setScreen('yoga-breath-settings');
+
+  // Handler to go back to Yoga Breath Timer from settings
+  const goBackToYoga = () => setScreen('yoga-breath-timer');
+
   return (
     <GestureHandlerRootView style={styles.gestureContainer}>
-      <NavigationContainer>
-        <Stack.Navigator>
-          <Stack.Screen
-            name="Home"
-            component={HomeScreen}
-            options={({ navigation }) => ({
-              headerRight: () => renderHeaderRight(navigation),
-            })}
-          />
-          <Stack.Screen
-            name="Settings"
-            component={ConfigurationScreen}
-            options={{ title: 'Configure Session' }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
+      {screen === 'dashboard' && <Dashboard onSelectFeature={handleSelectFeature} />}
+      {screen === 'yoga-breath-timer' && (
+        <HomeScreen onConfigureSession={goToYogaSettings} onHome={goHome} />
+      )}
+      {screen === 'yoga-breath-settings' && (
+        <SettingsScreen onBack={goBackToYoga} />
+      )}
+      {screen === 'stopwatch' && <Stopwatch onBack={goHome} />}
     </GestureHandlerRootView>
   );
 }
@@ -76,8 +41,5 @@ export default function App() {
 const styles = StyleSheet.create({
   gestureContainer: {
     flex: 1,
-  },
-  settingsButton: {
-    marginRight: 15,
   },
 });

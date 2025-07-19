@@ -15,6 +15,7 @@ import { COLORS, PRESET_PATTERNS } from '../constants';
 import { playSound } from '../utils/soundManager';
 import LinearGradient from 'react-native-linear-gradient';
 import { StackNavigationProp } from '@react-navigation/stack';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 // ... imports ...
 
@@ -25,7 +26,8 @@ type RootStackParamList = {
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 
-const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) => {
+// Make navigation optional
+const HomeScreen = ({ navigation, onConfigureSession, onHome }: { navigation?: HomeScreenNavigationProp, onConfigureSession?: () => void, onHome?: () => void }) => {
   const {
     isRunning,
     pattern,
@@ -177,6 +179,12 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
 
   return (
     <LinearGradient colors={['#e0c3fc', '#8ec5fc']} style={{ flex: 1 }}>
+      {/* Floating Home Icon */}
+      {onHome && (
+        <TouchableOpacity style={styles.floatingHomeIcon} onPress={onHome}>
+          <Icon name="home" size={28} color="#333" />
+        </TouchableOpacity>
+      )}
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.header}>Yoga Breath Timer</Text>
         <Text style={styles.presetLabel}>{presetName}</Text>
@@ -196,7 +204,13 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
         </View>
         <ProgressIndicators />
         <ControlButtons sessionComplete={sessionComplete} />
-        <TouchableOpacity style={styles.configButton} onPress={() => navigation.navigate('Settings')}>
+        <TouchableOpacity
+          style={styles.configButton}
+          onPress={() => {
+            if (onConfigureSession) onConfigureSession();
+            else if (navigation) navigation.navigate('Settings');
+          }}
+        >
           <Text style={styles.configButtonText}>Configure Session</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -209,7 +223,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 5,
+    paddingVertical: 10,
     paddingHorizontal: 16,
   },
   header: {
@@ -221,10 +235,11 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
   },
   presetLabel: {
-    fontSize: 14,
-    color: COLORS.text,
-    opacity: 0.7,
-    marginBottom: 8,
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#3a5fc8', // deep blue for visibility and theme
+    opacity: 1,
+    marginBottom: 12,
   },
   visualCard: {
     backgroundColor: 'rgba(255,255,255,0.85)',
@@ -279,6 +294,20 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     textAlign: 'center',
     marginBottom: 8,
+  },
+  floatingHomeIcon: {
+    position: 'absolute',
+    top: 30,
+    left: 16,
+    zIndex: 10,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    borderRadius: 20,
+    padding: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 6,
   },
 });
 
