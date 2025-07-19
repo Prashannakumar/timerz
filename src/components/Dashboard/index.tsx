@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 const FEATURES = [
   {
     key: 'yoga-breath-timer',
-    label: 'Yoga Breath Timer',
+    label: 'Breath Cycle',
     icon: 'leaf-outline',
     color: '#4CAF50',
   },

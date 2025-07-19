@@ -186,7 +186,7 @@ const HomeScreen = ({ navigation, onConfigureSession, onHome }: { navigation?: H
         </TouchableOpacity>
       )}
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.header}>Yoga Breath Timer</Text>
+        <Text style={styles.header}>Breath Cycle</Text>
         <Text style={styles.presetLabel}>{presetName}</Text>
         <View style={styles.visualCard}>
           {sessionComplete ? (
