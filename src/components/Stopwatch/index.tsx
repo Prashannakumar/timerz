@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
@@ -9,30 +9,43 @@ export default function Stopwatch({ onBack }: { onBack: () => void }) {
   const [running, setRunning] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimestamp = useRef<number | null>(null);
+  const previousElapsed = useRef(0);
 
   // Animated icon pulse
   const iconScale = useSharedValue(1);
+  const iconGlow = useSharedValue(0.4);
+
   React.useEffect(() => {
     if (running) {
       iconScale.value = withRepeat(withSequence(
-        withTiming(1.18, { duration: 400 }),
-        withTiming(1, { duration: 400 })
+        withTiming(1.18, { duration: 1000 }),
+        withTiming(1, { duration: 1000 })
+      ), -1, true);
+      iconGlow.value = withRepeat(withSequence(
+        withTiming(0.8, { duration: 400 }),
+        withTiming(0.4, { duration: 400 })
       ), -1, true);
     } else {
       iconScale.value = withTiming(1, { duration: 300 });
+      iconGlow.value = withTiming(0.4, { duration: 300 });
     }
   }, [running]);
   const iconAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: iconScale.value }],
+    shadowOpacity: iconGlow.value,
   }));
 
   const start = () => {
     if (!running) {
       setRunning(true);
       playSound('phaseStart');
+      startTimestamp.current = Date.now();
       intervalRef.current = setInterval(() => {
-        setElapsed((prev) => prev + 10);
-      }, 10);
+        if (startTimestamp.current !== null) {
+          setElapsed(Date.now() - startTimestamp.current + previousElapsed.current);
+        }
+      }, 30);
     }
   };
 
@@ -40,12 +53,18 @@ export default function Stopwatch({ onBack }: { onBack: () => void }) {
     setRunning(false);
     playSound('phaseComplete');
     if (intervalRef.current) clearInterval(intervalRef.current);
+    if (startTimestamp.current !== null) {
+      previousElapsed.current += Date.now() - startTimestamp.current;
+      startTimestamp.current = null;
+    }
   };
 
   const reset = () => {
     setElapsed(0);
     setRunning(false);
     if (intervalRef.current) clearInterval(intervalRef.current);
+    startTimestamp.current = null;
+    previousElapsed.current = 0;
   };
 
   React.useEffect(() => {
@@ -64,8 +83,11 @@ export default function Stopwatch({ onBack }: { onBack: () => void }) {
       .padStart(2, '0')}.${centiseconds.toString().padStart(2, '0')}`;
   };
 
+  // Gradient for buttons
+  const buttonGradient = ['#7C4DFF', '#3a5fc8'];
+
   return (
-    <LinearGradient colors={['#e0c3fc', '#8ec5fc']} style={{ flex: 1 }}>
+    <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={{ flex: 1 }}>
       {/* Header Row with Home Icon and Title */}
       <View style={styles.headerRow}>
         <TouchableOpacity style={styles.headerHomeIcon} onPress={onBack}>
@@ -75,25 +97,42 @@ export default function Stopwatch({ onBack }: { onBack: () => void }) {
       </View>
       {/* Animated Stopwatch Icon */}
       <View style={styles.iconContainer}>
-        <Animated.View style={iconAnimatedStyle}>
-          <Icon name="timer-outline" size={60} color="#3a5fc8" />
+        <Animated.View style={[iconAnimatedStyle, styles.iconGlow]}>
+          <Icon name="timer-outline" size={64} color="#7C4DFF" />
         </Animated.View>
       </View>
-      {/* Stopwatch Display */}
-      <View style={styles.timeContainer}>
-        <Text style={styles.time}>{formatTime(elapsed)}</Text>
+      {/* Glassmorphism Card for Stopwatch Display */}
+      <View style={styles.glassCard}>
+        <Animated.Text style={[styles.time]}>{formatTime(elapsed)}</Animated.Text>
       </View>
       {/* Controls */}
       <View style={styles.controls}>
-        <TouchableOpacity style={[styles.controlButton, running && styles.disabledButton]} onPress={start} disabled={running}>
-          <Text style={styles.controlText}>Start</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.controlButton, !running && styles.disabledButton]} onPress={stop} disabled={!running}>
-          <Text style={styles.controlText}>Stop</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.controlButton} onPress={reset}>
-          <Text style={styles.controlText}>Reset</Text>
-        </TouchableOpacity>
+        <Pressable
+          style={({ pressed }) => [styles.controlButton, running && styles.disabledButton, pressed && styles.buttonPressed]}
+          onPress={start}
+          disabled={running}
+        >
+          <LinearGradient colors={buttonGradient} style={styles.buttonGradient}>
+            <Text style={styles.controlText}>Start</Text>
+          </LinearGradient>
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [styles.controlButton, !running && styles.disabledButton, pressed && styles.buttonPressed]}
+          onPress={stop}
+          disabled={!running}
+        >
+          <LinearGradient colors={buttonGradient} style={styles.buttonGradient}>
+            <Text style={styles.controlText}>Stop</Text>
+          </LinearGradient>
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [styles.controlButton, pressed && styles.buttonPressed]}
+          onPress={reset}
+        >
+          <LinearGradient colors={buttonGradient} style={styles.buttonGradient}>
+            <Text style={styles.controlText}>Reset</Text>
+          </LinearGradient>
+        </Pressable>
       </View>
     </LinearGradient>
   );
@@ -126,50 +165,81 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: '#3a5fc8',
-    marginRight: 40, // to visually center the text when icon is present
+    marginRight: 40,
   },
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 24,
+    marginTop: 32,
     marginBottom: 8,
   },
-  container: {
-    flex: 1,
+  iconGlow: {
+    shadowColor: '#7C4DFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 18,
+    shadowOpacity: 0.7,
+    elevation: 12,
+    borderRadius: 40,
+    backgroundColor: 'rgba(124,77,255,0.08)',
+    padding: 12,
   },
-  timeContainer: {
+  glassCard: {
+    marginHorizontal: 32,
+    marginVertical: 18,
+    borderRadius: 32,
+    backgroundColor: 'rgba(255,255,255,0.35)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(124,77,255,0.18)',
+    paddingVertical: 28,
     alignItems: 'center',
-    marginVertical: 12,
+    shadowColor: '#7C4DFF',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 8,
   },
   time: {
     fontSize: 56,
     fontWeight: 'bold',
-    color: '#222',
+    color: '#3a5fc8',
+    letterSpacing: 2,
+    fontVariant: ['tabular-nums'],
   },
   controls: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingBottom: 40,
-    marginTop: 12,
+    marginTop: 18,
   },
   controlButton: {
-    backgroundColor: '#3a5fc8',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+    borderRadius: 16,
     marginHorizontal: 8,
-    shadowColor: '#000',
+    shadowColor: '#7C4DFF',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
-    shadowRadius: 4,
+    shadowRadius: 8,
     elevation: 2,
+    overflow: 'hidden',
+    minWidth: 90,
+  },
+  buttonGradient: {
+    paddingVertical: 14,
+    paddingHorizontal: 0,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonPressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.97 }],
   },
   disabledButton: {
-    backgroundColor: '#b3c6ff',
+    opacity: 0.5,
   },
   controlText: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    letterSpacing: 1,
   },
 }); 
