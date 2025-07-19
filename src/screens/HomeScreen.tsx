@@ -11,7 +11,7 @@ import TimerDisplay from '../components/TimerDisplay';
 import BreathVisualizer from '../components/BreathVisualizer';
 import HeaderSettingsButton from '../components/HeaderSettingsButton';
 import { useTimerStore } from '../store/useTimerStore';
-import { COLORS } from '../constants';
+import { COLORS, PRESET_PATTERNS } from '../constants';
 import { playSound } from '../utils/soundManager';
 import LinearGradient from 'react-native-linear-gradient';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -40,6 +40,7 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
     sets,
     relaxTime,
     updatePhaseDuration,
+    sessionComplete,
   } = useTimerStore();
 
   // Timer effect
@@ -48,41 +49,76 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
     
     if (isRunning) {
       interval = setInterval(() => {
+        // If in relax time
+        if (currentPhaseIndex === -1) {
+          const newRelaxTime = timeRemaining - 1;
+          if (newRelaxTime <= 0) {
+            // Relax time finished, start next set or end session
+            if (currentSet < sets) {
+              // Start next set
+              useTimerStore.setState({
+                currentSet: currentSet + 1,
+                currentCycle: 1,
+                currentPhaseIndex: 0,
+                timeRemaining: pattern[0].duration,
+              });
+              playSound('phaseStart');
+            } else {
+              // All sets complete
+              clearInterval(interval);
+              playSound('sessionComplete');
+              useTimerStore.setState({ sessionComplete: true });
+              // Auto-reset timer state but keep sessionComplete true
+              useTimerStore.setState({
+                isRunning: false,
+                currentPhaseIndex: 0,
+                timeRemaining: pattern[0].duration,
+                currentCycle: 1,
+                currentSet: 1,
+              });
+            }
+          } else {
+            useTimerStore.setState({ timeRemaining: newRelaxTime });
+          }
+          return;
+        }
+
         const newTime = timeRemaining - 1;
-        
         if (newTime <= 0) {
           // Phase complete
           const nextPhaseIndex = (currentPhaseIndex + 1) % pattern.length;
           const nextPhase = pattern[nextPhaseIndex];
-          
+
           // Check if we're completing a full cycle
           if (nextPhaseIndex === 0) {
             const nextCycle = currentCycle + 1;
-            
+
             // Check if we're completing a full set
             if (nextCycle > cycles) {
-              const nextSet = currentSet + 1;
-              
-              if (nextSet > sets) {
-                // Session complete
+              // If not the last set, start relax time
+              if (currentSet < sets) {
+                playSound('setComplete');
+                useTimerStore.setState({
+                  currentPhaseIndex: -1, // Special state for relax time
+                  timeRemaining: relaxTime,
+                });
+              } else {
+                // All sets complete
                 clearInterval(interval);
                 playSound('sessionComplete');
-                return;
-              } else {
-                // Set complete, start relax time if needed
-                if (relaxTime > 0) {
-                  playSound('setComplete');
-                  useTimerStore.setState({
-                    currentSet: nextSet,
-                    currentCycle: 1,
-                    currentPhaseIndex: -1, // Special state for relax time
-                    timeRemaining: relaxTime,
-                  });
-                  return;
-                }
+                useTimerStore.setState({ sessionComplete: true });
+                // Auto-reset timer state but keep sessionComplete true
+                useTimerStore.setState({
+                  isRunning: false,
+                  currentPhaseIndex: 0,
+                  timeRemaining: pattern[0].duration,
+                  currentCycle: 1,
+                  currentSet: 1,
+                });
               }
+              return;
             }
-            
+
             // Cycle complete
             playSound('cycleComplete');
             useTimerStore.setState({
@@ -100,9 +136,6 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
             });
             playSound('phaseStart');
           }
-        } else if (timeRemaining === relaxTime && currentPhaseIndex === -1) {
-          // Relax time just finished, start next phase
-          playSound('phaseStart');
         } else {
           // Regular countdown
           useTimerStore.setState({ timeRemaining: newTime });
@@ -111,28 +144,48 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
     }
     
     return () => clearInterval(interval);
-  }, [isRunning, timeRemaining, currentPhaseIndex, pattern, currentCycle, currentSet]);
+  }, [isRunning, timeRemaining, currentPhaseIndex, pattern, currentCycle, currentSet, sets, cycles, relaxTime]);
   
   // Determine current phase name and progress for BreathVisualizer
-  const currentPhase = pattern[currentPhaseIndex]?.name || 'Inhale';
-  const phaseDuration = pattern[currentPhaseIndex]?.duration || 1;
-  const progress = phaseDuration > 0 ? (phaseDuration - timeRemaining) / phaseDuration : 0;
+  let currentPhase = pattern[currentPhaseIndex]?.name || 'Inhale';
+  let phaseDuration = pattern[currentPhaseIndex]?.duration || 1;
+  let progress = phaseDuration > 0 ? (phaseDuration - timeRemaining) / phaseDuration : 0;
+
+  // If in relax time (currentPhaseIndex === -1), show 'Relax' and use relaxTime
+  if (currentPhaseIndex === -1) {
+    currentPhase = 'Relax';
+    phaseDuration = relaxTime;
+    progress = relaxTime > 0 ? (relaxTime - timeRemaining) / relaxTime : 0;
+  }
+
+  // Find the chosen preset name by matching the pattern
+  const chosenPreset = PRESET_PATTERNS.find(preset =>
+    preset.phases.length === pattern.length &&
+    preset.phases.every((phase, i) => phase.name === pattern[i].name)
+  );
+  const presetName = chosenPreset ? chosenPreset.name : 'Custom';
 
   return (
     <LinearGradient colors={['#e0c3fc', '#8ec5fc']} style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={[styles.container, { paddingBottom: 40 }]}>  
+      <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.header}>Yoga Breath Timer</Text>
-        <View style={styles.card}>
-          <BreathVisualizer currentPhase={currentPhase} progress={progress} />
-          <Text style={styles.phaseLabel}>{currentPhase}</Text>
+        <Text style={styles.presetLabel}>{presetName}</Text>
+        <View style={styles.visualCard}>
+          {sessionComplete ? (
+            <>
+              <Text style={styles.successMessage}>You did it! 🎉</Text>
+              <Text style={styles.successSubtext}>Session Complete</Text>
+            </>
+          ) : (
+            <>
+              <BreathVisualizer currentPhase={currentPhase} progress={progress} />
+              <Text style={styles.phaseLabel}>{currentPhase}</Text>
+              <TimerDisplay timeRemaining={timeRemaining} />
+            </>
+          )}
         </View>
         <ProgressIndicators />
-        <View style={styles.card}>
-          <TimerDisplay timeRemaining={timeRemaining} />
-        </View>
-        <View style={styles.controlsRow}>
-          <ControlButtons />
-        </View>
+        <ControlButtons sessionComplete={sessionComplete} />
         <TouchableOpacity style={styles.configButton} onPress={() => navigation.navigate('Settings')}>
           <Text style={styles.configButtonText}>Configure Session</Text>
         </TouchableOpacity>
@@ -145,22 +198,28 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    padding: 24,
+    justifyContent: 'space-between',
+    paddingVertical: 24,
+    paddingHorizontal: 16,
   },
   header: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#5f4b8b',
-    marginTop: 32,
-    marginBottom: 16,
+    marginTop: 12,
+    marginBottom: 2,
     letterSpacing: 1.2,
   },
-  card: {
+  presetLabel: {
+    fontSize: 14,
+    color: COLORS.text,
+    opacity: 0.7,
+    marginBottom: 8,
+  },
+  visualCard: {
     backgroundColor: 'rgba(255,255,255,0.85)',
     borderRadius: 24,
-    padding: 24,
-    marginVertical: 12,
+    padding: 16,
     alignItems: 'center',
     width: '100%',
     shadowColor: '#000',
@@ -168,26 +227,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 2,
+    marginBottom: 8,
   },
   phaseLabel: {
-    fontSize: 20,
+    fontSize: 18,
     color: '#5f4b8b',
-    marginTop: 8,
+    marginTop: 4,
     fontWeight: '600',
-  },
-  controlsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginVertical: 24,
-    width: '100%',
+    marginBottom: 8,
   },
   configButton: {
     backgroundColor: '#5f4b8b',
     borderRadius: 20,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
+    paddingVertical: 12,
+    paddingHorizontal: 28,
     alignSelf: 'center',
-    marginTop: 16,
+    marginTop: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
@@ -196,9 +251,24 @@ const styles = StyleSheet.create({
   },
   configButtonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     letterSpacing: 1.1,
+  },
+  successMessage: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#4BB543',
+    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  successSubtext: {
+    fontSize: 16,
+    color: COLORS.text,
+    opacity: 0.7,
+    textAlign: 'center',
+    marginBottom: 8,
   },
 });
 

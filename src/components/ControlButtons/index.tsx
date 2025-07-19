@@ -3,12 +3,16 @@ import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { COLORS } from '../../constants';
 import { useTimerStore } from '../../store/useTimerStore';
 
-const ControlButtons = () => {
+const ControlButtons = ({ sessionComplete = false }: { sessionComplete?: boolean }) => {
   const { isRunning, startTimer, pauseTimer, resetTimer } = useTimerStore();
 
   return (
     <View style={styles.container}>
-      {isRunning ? (
+      {sessionComplete ? (
+        <TouchableOpacity style={[styles.button, styles.startButton]} onPress={startTimer}>
+          <Text style={styles.buttonText}>Start</Text>
+        </TouchableOpacity>
+      ) : isRunning ? (
         <TouchableOpacity style={[styles.button, styles.pauseButton]} onPress={pauseTimer}>
           <Text style={styles.buttonText}>Pause</Text>
         </TouchableOpacity>
@@ -17,10 +21,11 @@ const ControlButtons = () => {
           <Text style={styles.buttonText}>Start</Text>
         </TouchableOpacity>
       )}
-      
-      <TouchableOpacity style={[styles.button, styles.resetButton]} onPress={resetTimer}>
-        <Text style={styles.buttonText}>Reset</Text>
-      </TouchableOpacity>
+      {!sessionComplete && (
+        <TouchableOpacity style={[styles.button, styles.resetButton]} onPress={resetTimer}>
+          <Text style={styles.buttonText}>Reset</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };

@@ -15,6 +15,7 @@ interface TimerState {
   relaxTime: number;
   currentCycle: number;
   currentSet: number;
+  sessionComplete: boolean;
   startTimer: () => void;
   pauseTimer: () => void;
   resetTimer: () => void;
@@ -43,7 +44,8 @@ export const useTimerStore = create<TimerState>((set) => ({
   relaxTime: 30,
   currentCycle: 1,
   currentSet: 1,
-  startTimer: () => set({ isRunning: true }),
+  sessionComplete: false,
+  startTimer: () => set({ isRunning: true, sessionComplete: false }),
   pauseTimer: () => set({ isRunning: false }),
   resetTimer: () => set({
     isRunning: false,
@@ -51,11 +53,13 @@ export const useTimerStore = create<TimerState>((set) => ({
     timeRemaining: 4,
     currentCycle: 1,
     currentSet: 1,
+    sessionComplete: false,
   }),
   updatePattern: (newPattern) => set({ 
     pattern: newPattern,
     currentPhaseIndex: 0,
     timeRemaining: newPattern[0].duration,
+    sessionComplete: false,
   }),
   updateSettings: (settings) => set(settings),
   editingMode: 'graph',

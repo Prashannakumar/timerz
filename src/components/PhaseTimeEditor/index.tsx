@@ -6,48 +6,29 @@ import Slider from '@react-native-community/slider';
 import BreathGraphEditor from '../BreathGraphEditor';
 
 const PhaseTimeEditor = () => {
-  const { pattern, editingMode, setEditingMode, updatePhaseDuration } = useTimerStore();
+  const { pattern, updatePhaseDuration } = useTimerStore();
 
   return (
     <View style={styles.container}>
-      <View style={styles.modeToggle}>
-        <TouchableOpacity 
-          style={[styles.toggleButton, editingMode === 'graph' && styles.activeToggle]}
-          onPress={() => setEditingMode('graph')}
-        >
-          <Text style={styles.toggleText}>Graph</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.toggleButton, editingMode === 'numbers' && styles.activeToggle]}
-          onPress={() => setEditingMode('numbers')}
-        >
-          <Text style={styles.toggleText}>Numbers</Text>
-        </TouchableOpacity>
+      <View style={styles.numericContainer}>
+        {pattern.map((phase, index) => (
+          <View key={index} style={styles.phaseRow}>
+            <Text style={styles.phaseName}>{phase.name}</Text>
+            <Slider
+              style={styles.slider}
+              minimumValue={1}
+              maximumValue={30}
+              step={1}
+              value={phase.duration}
+              onValueChange={(value) => updatePhaseDuration(index, value)}
+              minimumTrackTintColor={COLORS.primary}
+              maximumTrackTintColor={COLORS.inactive}
+              thumbTintColor={COLORS.secondary}
+            />
+            <Text style={styles.durationText}>{phase.duration}s</Text>
+          </View>
+        ))}
       </View>
-
-      {editingMode === 'numbers' ? (
-        <View style={styles.numericContainer}>
-          {pattern.map((phase, index) => (
-            <View key={index} style={styles.phaseRow}>
-              <Text style={styles.phaseName}>{phase.name}</Text>
-              <Slider
-                style={styles.slider}
-                minimumValue={1}
-                maximumValue={30}
-                step={1}
-                value={phase.duration}
-                onValueChange={(value) => updatePhaseDuration(index, value)}
-                minimumTrackTintColor={COLORS.primary}
-                maximumTrackTintColor={COLORS.inactive}
-                thumbTintColor={COLORS.secondary}
-              />
-              <Text style={styles.durationText}>{phase.duration}s</Text>
-            </View>
-          ))}
-        </View>
-      ) : (
-        <BreathGraphEditor />
-      )}
     </View>
   );
 };

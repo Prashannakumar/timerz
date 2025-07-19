@@ -26,7 +26,7 @@ const ConfigurationScreen = () => {
           style={[styles.toggleButton, inputMode === 'numbers' && styles.toggleActive]}
           onPress={() => setInputMode('numbers')}
         >
-          <Text style={[styles.toggleText, inputMode === 'numbers' && styles.toggleTextActive]}>Numbers</Text>
+          <Text style={[styles.toggleText, inputMode === 'numbers' && styles.toggleTextActive]}>Configure Phases</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.editorCard}>

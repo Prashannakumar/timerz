@@ -6,9 +6,10 @@ import Animated, { useAnimatedGestureHandler, useSharedValue, useAnimatedStyle, 
 import { COLORS } from '../../constants';
 import { useTimerStore } from '../../store/useTimerStore';
 
-const { width } = Dimensions.get('window');
-const GRAPH_WIDTH = width - 40;
-const GRAPH_HEIGHT = 200;
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const GRAPH_HORIZONTAL_PADDING = 24;
+const GRAPH_WIDTH = SCREEN_WIDTH - GRAPH_HORIZONTAL_PADDING * 2;
+const GRAPH_HEIGHT = 220;
 const POINT_RADIUS = 12;
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -104,7 +105,10 @@ const BreathGraphEditor = () => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
+    width: '100%',
+    alignItems: 'center',
+    paddingHorizontal: GRAPH_HORIZONTAL_PADDING,
+    // Remove overflow if not needed
   },
 });
 
