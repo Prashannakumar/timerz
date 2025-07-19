@@ -23,7 +23,7 @@ const PhaseTimeEditor = () => {
               onValueChange={(value) => updatePhaseDuration(index, value)}
               minimumTrackTintColor={COLORS.primary}
               maximumTrackTintColor={COLORS.inactive}
-              thumbTintColor={COLORS.secondary}
+              thumbTintColor={COLORS.primary}
             />
             <Text style={styles.durationText}>{phase.duration}s</Text>
           </View>

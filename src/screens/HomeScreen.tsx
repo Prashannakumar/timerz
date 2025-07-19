@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
 import BreathGraphEditor from '../components/BreathGraphEditor';
 import ConfigurationPanel from '../components/ConfigurationPanel';
@@ -43,6 +43,16 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
     sessionComplete,
   } = useTimerStore();
 
+  const prevIsRunning = useRef(isRunning);
+
+  // Play phaseStart sound when timer is started
+  useEffect(() => {
+    if (!prevIsRunning.current && isRunning) {
+      playSound('phaseStart');
+    }
+    prevIsRunning.current = isRunning;
+  }, [isRunning]);
+  
   // Timer effect
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -68,7 +78,6 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
               clearInterval(interval);
               playSound('sessionComplete');
               useTimerStore.setState({ sessionComplete: true });
-              // Auto-reset timer state but keep sessionComplete true
               useTimerStore.setState({
                 isRunning: false,
                 currentPhaseIndex: 0,
@@ -107,7 +116,6 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
                 clearInterval(interval);
                 playSound('sessionComplete');
                 useTimerStore.setState({ sessionComplete: true });
-                // Auto-reset timer state but keep sessionComplete true
                 useTimerStore.setState({
                   isRunning: false,
                   currentPhaseIndex: 0,
@@ -119,8 +127,10 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
               return;
             }
 
-            // Cycle complete
-            playSound('cycleComplete');
+            // Only play cycleComplete if not also setComplete
+            if (nextCycle <= cycles) {
+              playSound('cycleComplete');
+            }
             useTimerStore.setState({
               currentCycle: nextCycle,
               currentPhaseIndex: nextPhaseIndex,
@@ -179,7 +189,7 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
           ) : (
             <>
               <BreathVisualizer currentPhase={currentPhase} progress={progress} />
-              <Text style={styles.phaseLabel}>{currentPhase}</Text>
+              {/* <Text style={styles.phaseLabel}>{currentPhase}</Text> */}
               <TimerDisplay timeRemaining={timeRemaining} />
             </>
           )}
@@ -199,7 +209,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 24,
+    paddingVertical: 5,
     paddingHorizontal: 16,
   },
   header: {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { COLORS } from '../../constants';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 interface StepperInputProps {
   label: string;
@@ -32,19 +33,19 @@ const StepperInput: React.FC<StepperInputProps> = ({
       <Text style={styles.label}>{label}</Text>
       <View style={styles.stepper}>
         <TouchableOpacity 
-          style={styles.button} 
+          style={[styles.button, styles.decrementButton]}
           onPress={handleDecrement}
           disabled={value <= min}
         >
-          <Text style={styles.buttonText}>-</Text>
+          <Icon name="remove" size={22} color={value <= min ? '#ccc' : COLORS.secondary} />
         </TouchableOpacity>
         <Text style={styles.value}>{value}</Text>
         <TouchableOpacity 
-          style={styles.button} 
+          style={[styles.button, styles.incrementButton]}
           onPress={handleIncrement}
           disabled={value >= max}
         >
-          <Text style={styles.buttonText}>+</Text>
+          <Icon name="add" size={22} color={value >= max ? '#ccc' : COLORS.primary} />
         </TouchableOpacity>
       </View>
     </View>
@@ -70,9 +71,17 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    marginHorizontal: 4,
+  },
+  incrementButton: {
+    borderColor: COLORS.primary,
+  },
+  decrementButton: {
+    borderColor: COLORS.secondary,
   },
   buttonText: {
     fontSize: 20,

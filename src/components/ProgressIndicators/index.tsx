@@ -8,27 +8,28 @@ const ProgressIndicators = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.progressContainer}>
-        <Text style={styles.label}>Cycle: {currentCycle}/{cycles}</Text>
-        <View style={styles.progressBar}>
-          <View 
-            style={[
-              styles.progressFill, 
-              { width: `${(currentCycle / cycles) * 100}%` }
-            ]} 
-          />
+      <View style={styles.row}>
+        <View style={styles.progressContainer}>
+          <Text style={styles.label}>Cycle: {currentCycle}/{cycles}</Text>
+          <View style={styles.progressBar}>
+            <View 
+              style={[
+                styles.progressFill, 
+                { width: `${(currentCycle / cycles) * 100}%` }
+              ]} 
+            />
+          </View>
         </View>
-      </View>
-      
-      <View style={styles.progressContainer}>
-        <Text style={styles.label}>Set: {currentSet}/{sets}</Text>
-        <View style={styles.progressBar}>
-          <View 
-            style={[
-              styles.progressFill, 
-              { width: `${(currentSet / sets) * 100}%` }
-            ]} 
-          />
+        <View style={styles.progressContainer}>
+          <Text style={styles.label}>Set: {currentSet}/{sets}</Text>
+          <View style={styles.progressBar}>
+            <View 
+              style={[
+                styles.progressFill, 
+                { width: `${(currentSet / sets) * 100}%` }
+              ]} 
+            />
+          </View>
         </View>
       </View>
     </View>
@@ -40,8 +41,15 @@ const styles = StyleSheet.create({
     marginVertical: 20,
     paddingHorizontal: 20,
   },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '80%',
+    // alignItems: 'flex-start',
+  },
   progressContainer: {
-    marginBottom: 15,
+    // flex: 1,
+    // marginHorizontal: 4,
   },
   label: {
     color: COLORS.text,
@@ -52,6 +60,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.inactive,
     borderRadius: 5,
     overflow: 'hidden',
+    width: '150%',
+    alignSelf: 'center',
   },
   progressFill: {
     height: '100%',

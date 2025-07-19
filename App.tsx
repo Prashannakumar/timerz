@@ -67,14 +67,6 @@ export default function App() {
             component={ConfigurationScreen}
             options={{ title: 'Configure Session' }}
           />
-          {/* <Stack.Screen name="BreathVisualizer" component={BreathVisualizerScreen} />
-          <Stack.Screen name="BreathGraphEditor" component={BreathGraphEditor} />
-          <Stack.Screen name="ConfigurationPanel" component={ConfigurationPanel} />
-          <Stack.Screen name="ControlButtons" component={ControlButtons} />
-          <Stack.Screen name="PhaseTimeEditor" component={PhaseTimeEditor} />
-          <Stack.Screen name="PresetSelector" component={PresetSelector} />
-          <Stack.Screen name="ProgressIndicators" component={ProgressIndicators} />
-          <Stack.Screen name="HeaderSettingsButton" component={HeaderSettingsButtonScreen} /> */}
         </Stack.Navigator>
       </NavigationContainer>
     </GestureHandlerRootView>
