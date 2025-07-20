@@ -1,9 +1,11 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Pressable, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import { playSound } from '../../utils/soundManager';
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function Stopwatch({ onBack }: { onBack: () => void }) {
   const [running, setRunning] = useState(false);
@@ -83,11 +85,8 @@ export default function Stopwatch({ onBack }: { onBack: () => void }) {
       .padStart(2, '0')}.${centiseconds.toString().padStart(2, '0')}`;
   };
 
-  // Gradient for buttons
-  const buttonGradient = ['#7C4DFF', '#3a5fc8'];
-
   return (
-    <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={{ flex: 1 }}>
+    <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
       {/* Header Row at the very top */}
       <View style={styles.headerRow}>
         <TouchableOpacity style={styles.headerHomeIcon} onPress={onBack}>
@@ -95,7 +94,8 @@ export default function Stopwatch({ onBack }: { onBack: () => void }) {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Stopwatch</Text>
       </View>
-      {/* Main content with top margin to avoid overlap */}
+      
+      {/* Main content with proper spacing */}
       <View style={styles.mainContent}>
         {/* Animated Stopwatch Icon */}
         <View style={styles.iconContainer}>
@@ -103,32 +103,49 @@ export default function Stopwatch({ onBack }: { onBack: () => void }) {
             <Icon name="timer-outline" size={60} color="#3a5fc8" />
           </Animated.View>
         </View>
-        {/* Glassmorphism Card for Stopwatch Display */}
-        <View style={styles.displayCard}>
-          <Animated.Text style={[styles.time]}>{formatTime(elapsed)}</Animated.Text>
+        
+        {/* Time Display */}
+        <View style={styles.timeDisplayContainer}>
+          <View style={styles.displayCard}>
+            <Text style={styles.time}>{formatTime(elapsed)}</Text>
+          </View>
         </View>
-        {/* Controls */}
-        <View style={styles.controls}>
-          <Pressable
-            style={({ pressed }) => [styles.controlButton, running && styles.disabledButton, pressed && styles.buttonPressed]}
-            onPress={start}
-            disabled={running}
-          >
-            <Text style={styles.controlText}>Start</Text>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [styles.controlButton, !running && styles.disabledButton, pressed && styles.buttonPressed]}
-            onPress={stop}
-            disabled={!running}
-          >
-            <Text style={styles.controlText}>Stop</Text>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [styles.controlButton, pressed && styles.buttonPressed]}
-            onPress={reset}
-          >
-            <Text style={styles.controlText}>Reset</Text>
-          </Pressable>
+        
+        {/* Control Buttons */}
+        <View style={styles.controlsContainer}>
+          <View style={styles.controls}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.controlButton, 
+                running && styles.disabledButton, 
+                pressed && styles.buttonPressed
+              ]}
+              onPress={start}
+              disabled={running}
+            >
+              <Text style={styles.controlText}>Start</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.controlButton, 
+                !running && styles.disabledButton, 
+                pressed && styles.buttonPressed
+              ]}
+              onPress={stop}
+              disabled={!running}
+            >
+              <Text style={styles.controlText}>Stop</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.controlButton, 
+                pressed && styles.buttonPressed
+              ]}
+              onPress={reset}
+            >
+              <Text style={styles.controlText}>Reset</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     </LinearGradient>
@@ -136,6 +153,9 @@ export default function Stopwatch({ onBack }: { onBack: () => void }) {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -171,16 +191,15 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 90,
+    paddingBottom: 60,
     paddingHorizontal: 24,
-    marginTop: 90, // enough to clear the header
   },
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 10,
-    marginBottom: 18,
+    marginTop: screenHeight * 0.05,
   },
   iconGlow: {
     shadowColor: '#3a5fc8',
@@ -192,42 +211,56 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(124,77,255,0.08)',
     padding: 12,
   },
-  displayCard: {
-    marginVertical: 18,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.35)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(124,77,255,0.18)',
-    paddingVertical: 18,
-    paddingHorizontal: 32,
+  timeDisplayContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  displayCard: {
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(124,77,255,0.25)',
+    paddingVertical: 32,
+    paddingHorizontal: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#7C4DFF',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.15,
     shadowRadius: 24,
     elevation: 8,
-    minWidth: 220,
+    minWidth: 300,
+    minHeight: 120,
   },
   time: {
-    fontSize: 48,
+    fontSize: 42,
     fontWeight: 'bold',
     color: '#3a5fc8',
     letterSpacing: 2,
     fontVariant: ['tabular-nums'],
     textAlign: 'center',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+  },
+  controlsContainer: {
+    alignItems: 'center',
+    marginBottom: screenHeight * 0.05,
   },
   controls: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 28,
-    marginBottom: 8,
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 320,
   },
   controlButton: {
     backgroundColor: '#3a5fc8',
     borderRadius: 14,
-    marginHorizontal: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 28,
+    marginHorizontal: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
     minWidth: 90,
     alignItems: 'center',
     shadowColor: '#7C4DFF',

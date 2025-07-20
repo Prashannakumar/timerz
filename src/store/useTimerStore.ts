@@ -47,14 +47,14 @@ export const useTimerStore = create<TimerState>((set) => ({
   sessionComplete: false,
   startTimer: () => set({ isRunning: true, sessionComplete: false }),
   pauseTimer: () => set({ isRunning: false }),
-  resetTimer: () => set({
+  resetTimer: () => set((state) => ({
     isRunning: false,
     currentPhaseIndex: 0,
-    timeRemaining: 4,
+    timeRemaining: state.pattern[0].duration,
     currentCycle: 1,
     currentSet: 1,
     sessionComplete: false,
-  }),
+  })),
   updatePattern: (newPattern) => set({ 
     pattern: newPattern,
     currentPhaseIndex: 0,

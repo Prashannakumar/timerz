@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Vibration } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Vibration, PanResponder, GestureResponderEvent, PanResponderGestureState } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { playSound } from '../../utils/soundManager';
@@ -12,6 +12,32 @@ export default function CountdownTimer({ onHome }: { onHome?: () => void }) {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const totalSeconds = minutes * 60 + seconds;
+
+  // PanResponder for minutes
+  const minPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderRelease: (_evt: GestureResponderEvent, gestureState: PanResponderGestureState) => {
+        if (running) return;
+        if (gestureState.dy < -10) setMinutes((m) => Math.min(99, m + 1)); // swipe up
+        if (gestureState.dy > 10) setMinutes((m) => Math.max(0, m - 1)); // swipe down
+      },
+    })
+  ).current;
+
+  // PanResponder for seconds
+  const secPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderRelease: (_evt: GestureResponderEvent, gestureState: PanResponderGestureState) => {
+        if (running) return;
+        if (gestureState.dy < -10) setSeconds((s) => Math.min(59, s + 1)); // swipe up
+        if (gestureState.dy > 10) setSeconds((s) => Math.max(0, s - 1)); // swipe down
+      },
+    })
+  ).current;
 
   const start = () => {
     if (!running && totalSeconds > 0) {
@@ -67,29 +93,31 @@ export default function CountdownTimer({ onHome }: { onHome?: () => void }) {
       {/* Main content with top margin to avoid overlap */}
       <View style={styles.mainContent}>
         <View style={styles.timeInputRow}>
-          <View style={styles.stepperGroup}>
-            <TouchableOpacity style={styles.stepperBtn} onPress={() => setMinutes((m) => Math.max(0, m - 1))} disabled={running}>
-              <Icon name="remove-circle-outline" size={32} color="#7C4DFF" />
-            </TouchableOpacity>
-            <Text style={styles.inputNum}>{minutes}</Text>
+          <View style={styles.stepperGroup} {...minPanResponder.panHandlers}>
             <TouchableOpacity style={styles.stepperBtn} onPress={() => setMinutes((m) => Math.min(99, m + 1))} disabled={running}>
               <Icon name="add-circle-outline" size={32} color="#7C4DFF" />
             </TouchableOpacity>
-            <Text style={styles.inputLabel}>min</Text>
-          </View>
-          <View style={styles.stepperGroup}>
-            <TouchableOpacity style={styles.stepperBtn} onPress={() => setSeconds((s) => Math.max(0, s - 1))} disabled={running}>
+            <Text style={styles.inputNum}>{minutes}</Text>            
+            <TouchableOpacity style={styles.stepperBtn} onPress={() => setMinutes((m) => Math.max(0, m - 1))} disabled={running}>
               <Icon name="remove-circle-outline" size={32} color="#7C4DFF" />
             </TouchableOpacity>
-            <Text style={styles.inputNum}>{seconds}</Text>
+            <Text style={styles.inputLabel}>minutes</Text>
+          </View>
+          <View style={styles.stepperGroup} {...secPanResponder.panHandlers}>
             <TouchableOpacity style={styles.stepperBtn} onPress={() => setSeconds((s) => Math.min(59, s + 1))} disabled={running}>
               <Icon name="add-circle-outline" size={32} color="#7C4DFF" />
             </TouchableOpacity>
-            <Text style={styles.inputLabel}>sec</Text>
+            <Text style={styles.inputNum}>{seconds}</Text>
+            <TouchableOpacity style={styles.stepperBtn} onPress={() => setSeconds((s) => Math.max(0, s - 1))} disabled={running}>
+              <Icon name="remove-circle-outline" size={32} color="#7C4DFF" />
+            </TouchableOpacity>
+            <Text style={styles.inputLabel}>seconds</Text>
           </View>
         </View>
-        <View style={styles.displayCard}>
-          <Text style={styles.displayTime}>{mm}:{ss}</Text>
+        <View style={styles.timeDisplayContainer}>
+          <View style={styles.displayCard}>
+            <Text style={styles.displayTime}>{mm}:{ss}</Text>
+          </View>
         </View>
         <View style={styles.controls}>
           {!running ? (
@@ -119,9 +147,9 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 10,
-    paddingTop: 30,
+    paddingTop: 36,
     paddingHorizontal: 16,
-    minHeight: 48,
+    minHeight: 52,
     backgroundColor: 'transparent',
   },
   headerHomeIcon: {
@@ -149,7 +177,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
-    marginTop: 78, // enough to clear the header
+    marginTop: 90,
+    marginBottom: 70,
   },
   timeInputRow: {
     flexDirection: 'row',
@@ -174,27 +203,37 @@ const styles = StyleSheet.create({
     color: '#888',
     marginTop: 2,
   },
+  timeDisplayContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
   displayCard: {
-    marginVertical: 18,
-    borderRadius: 32,
-    backgroundColor: 'rgba(255,255,255,0.35)',
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.8)',
     borderWidth: 1.5,
-    borderColor: 'rgba(124,77,255,0.18)',
-    paddingVertical: 28,
+    borderColor: 'rgba(124,77,255,0.25)',
+    paddingVertical: 32,
     paddingHorizontal: 48,
     alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#7C4DFF',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.15,
     shadowRadius: 24,
     elevation: 8,
+    minWidth: 300,
+    minHeight: 120,
   },
   displayTime: {
-    fontSize: 56,
+    fontSize: 42,
     fontWeight: 'bold',
     color: '#3a5fc8',
     letterSpacing: 2,
     fontVariant: ['tabular-nums'],
+    textAlign: 'center',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   controls: {
     flexDirection: 'row',

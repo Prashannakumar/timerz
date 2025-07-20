@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
 import BreathGraphEditor from '../components/BreathGraphEditor';
 import ConfigurationPanel from '../components/ConfigurationPanel';
@@ -10,6 +10,7 @@ import StepperInput from '../components/StepperInput';
 import TimerDisplay from '../components/TimerDisplay';
 import BreathVisualizer from '../components/BreathVisualizer';
 import HeaderSettingsButton from '../components/HeaderSettingsButton';
+import SessionCompleteModal from '../components/SessionCompleteModal';
 import { useTimerStore } from '../store/useTimerStore';
 import { COLORS, PRESET_PATTERNS } from '../constants';
 import { playSound } from '../utils/soundManager';
@@ -45,7 +46,21 @@ const HomeScreen = ({ navigation, onConfigureSession, onHome }: { navigation?: H
     sessionComplete,
   } = useTimerStore();
 
+  const [showModal, setShowModal] = useState(false);
   const prevIsRunning = useRef(isRunning);
+
+  // Show modal when session completes
+  useEffect(() => {
+    if (sessionComplete && !showModal) {
+      setShowModal(true);
+    }
+  }, [sessionComplete]);
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    // Reset the session complete state
+    useTimerStore.setState({ sessionComplete: false });
+  };
 
   // Play phaseStart sound when timer is started
   useEffect(() => {
@@ -189,18 +204,8 @@ const HomeScreen = ({ navigation, onConfigureSession, onHome }: { navigation?: H
         <Text style={styles.header}>Breath Cycle</Text>
         <Text style={styles.presetLabel}>{presetName}</Text>
         <View style={styles.visualCard}>
-          {sessionComplete ? (
-            <>
-              <Text style={styles.successMessage}>You did it! 🎉</Text>
-              <Text style={styles.successSubtext}>Session Complete</Text>
-            </>
-          ) : (
-            <>
-              <BreathVisualizer currentPhase={currentPhase} progress={progress} />
-              {/* <Text style={styles.phaseLabel}>{currentPhase}</Text> */}
-              <TimerDisplay timeRemaining={timeRemaining} />
-            </>
-          )}
+          <BreathVisualizer currentPhase={currentPhase} progress={progress} />
+          <TimerDisplay timeRemaining={timeRemaining} />
         </View>
         <ProgressIndicators />
         <ControlButtons sessionComplete={sessionComplete} />
@@ -214,6 +219,12 @@ const HomeScreen = ({ navigation, onConfigureSession, onHome }: { navigation?: H
           <Text style={styles.configButtonText}>Configure Session</Text>
         </TouchableOpacity>
       </ScrollView>
+      
+      {/* Session Complete Modal */}
+      <SessionCompleteModal 
+        visible={showModal} 
+        onClose={handleCloseModal} 
+      />
     </LinearGradient>
   );
 };
